@@ -29,4 +29,7 @@
     margin-top: 5px;
     padding-left: 16px;
   }
+  .ql-align-center {
+    text-align: center;
+  }
 </style>

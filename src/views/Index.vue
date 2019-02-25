@@ -1,12 +1,16 @@
 <template>
   <div class="index">
     <div class="container">
-      <h1>最近的20篇文章</h1>
       <ul>
         <router-link tag="li" :to="{name: 'article', params: {id: item.id}}" v-for="(item, index) in tableData" :key="index">
           {{item.createTime}} » {{item.title}}
         </router-link>
       </ul>
+      <div class="footer">
+        <el-pagination layout="prev, pager, next" :total="totalPage" background 
+        :page-size="pageSize" :current-page.sync="currentPage"
+        @current-change="listArticle"></el-pagination>
+      </div>
     </div>
   </div>
 </template>
@@ -14,7 +18,7 @@
 <script>
   import {
     get
-  } from '../service/axios'
+  } from '../service/axios';
   export default {
     data() {
       return {
@@ -38,6 +42,18 @@
           this.currentPage = res.data.currentPage;
         })
       }
+    },
+    computed: {
+      totalPage() {
+        const totalPage = Math.ceil(this.total/this.pageSize);
+        console.log(totalPage)
+        return totalPage;
+      }
+    },
+    watch: {
+      currentPage(curr) {
+        console.log(this.currentPage)
+      }
     }
   }
 
@@ -56,11 +72,19 @@
     align-items: center;
 
     .container {
+      position: relative;
       min-width: 70%;
       min-height: 80%;
       padding: 20px;
       color: white;
-      background: rgba(0, 0, 0, .5)
+      background: rgba(0, 0, 0, .5);
+
+      .footer {
+        position: absolute;
+        left: 50%;
+        bottom: 10px;
+        transform: translateX(-50%);
+      }
     }
 
     ul {
@@ -76,6 +100,8 @@
         border-radius: 10px;
       }
     }
+
+    .page-no {}
   }
 
 </style>

@@ -6,6 +6,9 @@ import './registerServiceWorker'
 
 Vue.config.productionTip = false
 
+import { Pagination } from 'element-ui'
+Vue.use(Pagination);
+
 new Vue({
   router,
   store,

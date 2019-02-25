@@ -45,8 +45,8 @@
     width: calc(100% - 80px);
     padding: 40px;
     text-align: left;
-    background: url('../assets/bg2.png') no-repeat center center;
-    background-size: 100% 100%;
+    background: beige;
+    background-size: cover;
     overflow: hidden;
 
     .tag {
@@ -64,7 +64,6 @@
       .time {
         margin-bottom: 40px;
         color: #d3d3d3;
-        border-bottom: solid #d3d3d3 1px;
       }
 
       .inner {
@@ -79,18 +78,18 @@
     }
 
     .container-mirror {
-        position: absolute;
-        top: 90px;
-        left: 40px;
-        right: 40px;
-        bottom: 40px;
-        background: url('../assets/bg2.png') no-repeat center center fixed;
-        background-size: 100% 100%;
-        filter: blur(10px);
-        opacity: .9;
+      position: absolute;
+      top: 71px;
+      left: 12px;
+      right: 12px;
+      bottom: 26px;
+      background: url(../assets/bg2.png) no-repeat 50% fixed;
+      background-size: cover;
+      -webkit-filter: blur(10px);
+      filter: blur(10px);
+      opacity: .9;
     }
 
   }
 
-  
 </style>
