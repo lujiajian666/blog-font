@@ -1,15 +1,22 @@
 <template>
   <div class="index">
     <div class="container">
+      <div class="nav">
+        <div class="search">
+          <el-input placeholder="请输入内容" prefix-icon="el-icon-search" v-model="search"
+          size="small" @change="searchData">
+          </el-input>
+        </div>
+      </div>
+
       <ul>
         <router-link tag="li" :to="{name: 'article', params: {id: item.id}}" v-for="(item, index) in tableData" :key="index">
           {{item.createTime}} » {{item.title}}
         </router-link>
       </ul>
       <div class="footer">
-        <el-pagination layout="prev, pager, next" :total="totalPage" background 
-        :page-size="pageSize" :current-page.sync="currentPage"
-        @current-change="listArticle"></el-pagination>
+        <el-pagination layout="prev, pager, next" :total="totalPage" background :page-size="pageSize"
+          :current-page.sync="currentPage" @current-change="listArticle"></el-pagination>
       </div>
     </div>
   </div>
@@ -25,27 +32,34 @@
         tableData: [],
         pageSize: 10,
         total: 0,
-        currentPage: 1
+        currentPage: 1,
+        search: ''
       }
     },
     created() {
       this.listArticle()
     },
     methods: {
-      listArticle() {
-        get('/article/get', {
+      listArticle(extParams) {
+        const params = {
           currentPage: this.currentPage,
           pageSize: this.pageSize
-        }).then(res => {
+        }
+        Object.assign(params, extParams);
+        get('/article/get', params).then(res => {
           this.tableData = res.data.list;
           this.total = res.data.total;
           this.currentPage = res.data.currentPage;
         })
+      },
+      searchData() {
+        this.currentPage = 1;
+        this.listArticle({key: this.search})
       }
     },
     computed: {
       totalPage() {
-        const totalPage = Math.ceil(this.total/this.pageSize);
+        const totalPage = Math.ceil(this.total / this.pageSize);
         console.log(totalPage)
         return totalPage;
       }
@@ -78,6 +92,15 @@
       padding: 20px;
       color: white;
       background: rgba(0, 0, 0, .5);
+
+      .nav {
+        height: 40px;
+        line-height: 40px;
+        .search {
+          width: 200px;
+          float: right;
+        }
+      }
 
       .footer {
         position: absolute;
