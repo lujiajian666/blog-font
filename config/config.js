@@ -6,4 +6,4 @@ const product = {
   baseUrl: 'http://www.lujiajian.xyz'
 }
 
-export default develop
+export default product

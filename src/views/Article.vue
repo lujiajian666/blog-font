@@ -45,9 +45,11 @@
     width: calc(100% - 80px);
     padding: 40px;
     text-align: left;
-    background: beige;
+    background: whitesmoke;
     background-size: cover;
     overflow: hidden;
+    background: url(../assets/bg2.png) no-repeat fixed;
+    background-size: cover;
 
     .tag {
       height: 40px;
@@ -83,13 +85,12 @@
       left: 12px;
       right: 12px;
       bottom: 26px;
-      background: url(../assets/bg2.png) no-repeat 50% fixed;
+      background: url(../assets/bg2.png) no-repeat fixed;
       background-size: cover;
       -webkit-filter: blur(10px);
       filter: blur(10px);
       opacity: .9;
     }
-
   }
 
 </style>

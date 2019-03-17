@@ -32,4 +32,7 @@
   .ql-align-center {
     text-align: center;
   }
+  .index img {
+    max-width: 100%;
+  }
 </style>
