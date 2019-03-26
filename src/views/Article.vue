@@ -45,6 +45,7 @@
     width: calc(100% - 80px);
     padding: 40px;
     text-align: left;
+    font-weight: bold;
     background: whitesmoke;
     background-size: cover;
     overflow: hidden;
