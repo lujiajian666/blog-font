@@ -6,9 +6,14 @@ import './registerServiceWorker'
 
 Vue.config.productionTip = false
 
-import { Pagination,Input } from 'element-ui'
+import { Pagination,Input,Form,FormItem,Button,Message } from 'element-ui'
 Vue.use(Pagination);
 Vue.use(Input);
+Vue.use(Form);
+Vue.use(FormItem);
+Vue.use(Button);
+Vue.use(Message);
+Vue.prototype.$message = Message;
 
 new Vue({
   router,

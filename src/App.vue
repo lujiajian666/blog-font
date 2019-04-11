@@ -20,10 +20,12 @@
 
   // 自定义富文本样式
   .ql-syntax {
-    background: rgba(0, 0, 0, .4);
+    padding: 15px;
+    color: rgba(255, 255, 255, .8);
+    font-size: 16px;
+    line-height: 26px;
+    background: rgba(0, 0, 0, .8);
     border-radius: 5px;
-    padding: 5px;
-    margin: 10px
   }
 
   blockquote {
