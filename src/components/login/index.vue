@@ -1,13 +1,25 @@
 <template>
-  <div class="login">
+  <div class="login" v-if="show">
+    <i class="el-icon-error" @click="show = false"></i>
     <div>
-      <span class="login-button pointer">登录</span>
-      <span class="register-button pointer">注册</span>
+      <span class="login-button pointer" :class="{actived: choosed === 0}" @click="choose(0)">登录</span>
+      <span class="register-button pointer" :class="{actived: choosed === 1}" @click="choose(1)">注册</span>
     </div>
-    <template v-show="signUp">
-
+    <template v-if="choosed === 0">
+      <el-form :model="signInForm" ref="signInForm" status-icon :rules="signInRule" label-position="left">
+        <el-form-item label="账号" prop="username">
+          <el-input v-model.number="signInForm.username"></el-input>
+        </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input type="password" v-model="signInForm.password" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="submitForm('signInForm')">提交</el-button>
+          <el-button @click="resetForm('signInForm')">重置</el-button>
+        </el-form-item>
+      </el-form>
     </template>
-    <template v-show="!signUp">
+    <template v-else>
       <el-form :model="signUpForm" ref="signUpForm" status-icon :rules="signUpRule" label-position="left">
         <el-form-item label="账号" prop="username">
           <el-input v-model.number="signUpForm.username"></el-input>
@@ -27,6 +39,7 @@
   </div>
 </template>
 <script>
+  import cookie from 'js-cookie';
   import {
     post
   } from '../../service/axios'
@@ -65,6 +78,7 @@
         }
       };
       return {
+        show: true,
         signUpForm: {
           password: '',
           password2: '',
@@ -98,7 +112,11 @@
             trigger: 'blur'
           }]
         },
+        choosed: 0
       }
+    },
+    created() {
+      this.show = !!!cookie.get('username');
     },
     methods: {
       submitForm(formName) {
@@ -119,17 +137,26 @@
         this.$refs[formName].resetFields();
       },
       signUp() {
-        post('http://localhost:8888/article/register', {
+        post('/article/register', {
           password: this.signUpForm.password,
           username: this.signUpForm.username
         }).then(ret => {
-            this.$message.success(ret.msg);
+          this.$message.success(ret.msg);
+          this.show = false;
         }).catch(err => {
-            this.$message.error(err.message);
+          this.resetForm('signUpForm');
+          this.$message.error(err.message);
         })
       },
       signIn() {
-        post('http://www.lujiajian.xyz/article/login', this.signInForm)
+        post('/article/login', this.signInForm).then(_ =>{
+          this.show = false;
+        }).catch(err => {
+          this.$message.error(err.message || err)
+        })
+      },
+      choose(index) {
+        this.choosed = index;
       }
     }
   }
@@ -152,6 +179,23 @@
       margin-left: 0 !important;
     }
 
+    .el-icon-error {
+      position: absolute;
+      right: -20px;
+      top: -20px;
+      height: 30px;
+      width: 30px;
+      border-radius: 50px;
+      background: white;
+
+      &::before {
+        position: absolute;
+        left: -7px;
+        font-size: 40px;
+        top: -3px;
+      }
+    }
+
     .login-button {
       margin-right: 20px;
       font-size: 20px;
@@ -159,6 +203,10 @@
 
     .register-button {
       font-size: 20px;
+    }
+
+    .actived {
+      color: orange;
     }
   }
 
