@@ -5,37 +5,35 @@
       <span class="login-button pointer" :class="{actived: choosed === 0}" @click="choose(0)">登录</span>
       <span class="register-button pointer" :class="{actived: choosed === 1}" @click="choose(1)">注册</span>
     </div>
-    <template v-if="choosed === 0">
-      <el-form :model="signInForm" ref="signInForm" status-icon :rules="signInRule" label-position="left">
-        <el-form-item label="账号" prop="username">
-          <el-input v-model.number="signInForm.username"></el-input>
-        </el-form-item>
-        <el-form-item label="密码" prop="password">
-          <el-input type="password" v-model="signInForm.password" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="submitForm('signInForm')">提交</el-button>
-          <el-button @click="resetForm('signInForm')">重置</el-button>
-        </el-form-item>
-      </el-form>
-    </template>
-    <template v-else>
-      <el-form :model="signUpForm" ref="signUpForm" status-icon :rules="signUpRule" label-position="left">
-        <el-form-item label="账号" prop="username">
-          <el-input v-model.number="signUpForm.username"></el-input>
-        </el-form-item>
-        <el-form-item label="密码" prop="password">
-          <el-input type="password" v-model="signUpForm.password" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="确认密码" prop="password2">
-          <el-input type="password" v-model="signUpForm.password2" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="submitForm('signUpForm')">提交</el-button>
-          <el-button @click="resetForm('signUpForm')">重置</el-button>
-        </el-form-item>
-      </el-form>
-    </template>
+    <el-form v-show="choosed === 0" :model="signInForm" ref="signInForm" status-icon :rules="signInRule"
+      label-position="left">
+      <el-form-item label="账号" prop="username">
+        <el-input v-model.number="signInForm.username"></el-input>
+      </el-form-item>
+      <el-form-item label="密码" prop="password">
+        <el-input type="password" v-model="signInForm.password" autocomplete="off"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="submitForm('signInForm')">提交</el-button>
+        <el-button @click="resetForm('signInForm')">重置</el-button>
+      </el-form-item>
+    </el-form>
+    <el-form v-show="choosed !== 0 " :model="signUpForm" ref="signUpForm" status-icon :rules="signUpRule"
+      label-position="left">
+      <el-form-item label="账号" prop="username">
+        <el-input v-model.number="signUpForm.username"></el-input>
+      </el-form-item>
+      <el-form-item label="密码" prop="password">
+        <el-input type="password" v-model="signUpForm.password" autocomplete="off"></el-input>
+      </el-form-item>
+      <el-form-item label="确认密码" prop="checkPass">
+        <el-input type="password" v-model="signUpForm.checkPass" autocomplete="off"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="submitForm('signUpForm')">提交</el-button>
+        <el-button @click="resetForm('signUpForm')">重置</el-button>
+      </el-form-item>
+    </el-form>
   </div>
 </template>
 <script>
@@ -65,13 +63,17 @@
           if (!pattern.test(value)) {
             callback(new Error('密码必须为下划线字母数字的8到16位组合'))
           } else if (this.signUpForm.password2 !== '') {
-            this.$refs.signUpForm.validateField('password2');
+            const signUpForm = this.$refs.signUpForm;
+            signUpForm && signUpForm.validateField('password2');
           }
           callback();
         }
       };
       var validatePass2 = (rule, value, callback) => {
-        if (value !== this.signUpForm.password) {
+        console.log('validatePass2')
+        if (value === '') {
+          callback(new Error('不能为空'));
+        } else if (value !== this.signUpForm.password) {
           callback(new Error('两次输入密码不一致!'));
         } else {
           callback();
@@ -81,7 +83,7 @@
         show: true,
         signUpForm: {
           password: '',
-          password2: '',
+          checkPass: '',
           username: ''
         },
         signInForm: {
@@ -93,7 +95,7 @@
             validator: validatePass,
             trigger: 'blur'
           }],
-          password2: [{
+          checkPass: [{
             validator: validatePass2,
             trigger: 'blur'
           }],
@@ -142,20 +144,27 @@
           username: this.signUpForm.username
         }).then(ret => {
           this.$message.success(ret.msg);
-          this.show = false;
+          window.location.reload()
+          // this.show = false;
         }).catch(err => {
           this.resetForm('signUpForm');
           this.$message.error(err.message);
         })
       },
       signIn() {
-        post('/article/login', this.signInForm).then(_ =>{
-          this.show = false;
+        post('/article/login', this.signInForm).then(_ => {
+          // this.show = false;
+          this.$message.success('登录成功');
+          window.location.reload()
+
         }).catch(err => {
           this.$message.error(err.message || err)
         })
       },
       choose(index) {
+        const arr = ['signUpForm', 'signInForm'];
+        const form = this.$refs[arr[index]];
+        form && form.resetFields();
         this.choosed = index;
       }
     }

@@ -12,7 +12,6 @@ Vue.use(Input);
 Vue.use(Form);
 Vue.use(FormItem);
 Vue.use(Button);
-Vue.use(Message);
 Vue.use(Icon);
 Vue.use(Loading);
 Vue.prototype.$loading = Loading.service;

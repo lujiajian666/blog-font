@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="index" v-if="tableData">
+    <div class="index" id="articlePage" v-if="tableData">
       <p class="tag">
         lulujiang的个人博客
         <span class="tags" v-for="(value, index) in tags" :key="index">
@@ -14,39 +14,66 @@
           <div v-html="tableData.text"></div>
         </div>
         <div class="comment-text-area">
-          <textarea></textarea>
-          <input type="button" value="发表">
+          <textarea v-model="comment"></textarea>
+          <input type="button" value="发表" @click="addComment()">
+          <input v-if="username" type="button" class="logout" value="退出登录" @click="logout()">
+          <input v-else type="button" class="login" value="登录" @click="login()">
         </div>
         <ul class="comment">
-          <li>
-            <img src="../assets/logo.png">
-            <span>lujiajian:</span>
-            <span>哈哈哈哈啊哈</span>
-          </li>
-          <li>
-            <img src="../assets/logo.png">
-            <span>lujiajian:</span>
-            <span>哈哈哈哈啊哈</span>
+          <li v-for="(item, index) in parentComment" :key="index">
+            <span>{{item.username === tableData.username? '作者': item.username}}：</span>
+            <span>{{item.content}}</span>
+            <template v-if="replyId === item.id">
+              <br>
+              <input v-model="replyText">
+              <span class="reply pointer cancel" @click="cancelReply(item.id)">取消</span>
+            </template>
+            <span class="reply pointer" @click="reply(item.id)" v-if="item.username !== username">回复</span>
+            <ul>
+              <li v-for="(item2, index2) in item.list" :key="index2">
+                <span>{{item2.username === tableData.username? '作者': item2.username}} 回复
+                  {{item2.to === tableData.username? '作者': item2.to}}：</span>
+                <span>{{item2.content}}</span>
+                <template v-if="replyId === item2.id">
+                  <br>
+                  <input v-model="replyText">
+                  <span class="reply pointer cancel" @click="cancelReply(item2.id)">取消</span>
+                </template>
+                <span class="reply pointer" @click="reply(item2.id)" v-if="item2.username !== username">回复</span>
+              </li>
+            </ul>
           </li>
         </ul>
       </div>
     </div>
-    <canvas class="background"></canvas>
-    <login-component :signUp="signUp" :signIn="signIn"></login-component>
+    <div class="background" id="particlarjs"></div>
+    <login-component v-if="showLogin"></login-component>
   </div>
 </template>
 
 <script>
   import {
-    get
+    get,
+    post
   } from '../service/axios';
-  import Particles from 'particlesjs';
+  import particlesJS from 'particles.js';
+  import cookie from 'js-cookie';
   import loginComponent from '../components/login/index';
   export default {
     data() {
       return {
+        username: cookie.get('username'),
         tableData: null,
-        types: null
+        types: null,
+        showLogin: false,
+        comment: '',
+        replyText: '',
+        replyId: null,
+        //所有评论
+        allComment: null,
+        //所有父级评论
+        parentComment: null,
+        currentPage: 1
       }
     },
     created() {
@@ -67,16 +94,13 @@
       }).catch(e => {
         console.log(e)
       })
+
+      this.getComment();
     },
     mounted() {
-      // 粒子图背景
-      // Particles.init({
-      //   selector: '.background',
-      //   sizeVariations: 1,
-      //   color: '#65f7cd',
-      //   maxParticles: 1000,
-      //   speed: .1
-      // });
+      window.particlesJS.load('particlarjs', './particles.json', function () {
+        console.log('callback - particles.js config loaded');
+      })
     },
     computed: {
       tags() {
@@ -89,6 +113,114 @@
       loginComponent
     },
     methods: {
+      addComment(id) {
+        let loading = null;
+        if (!id && this.comment === '' || id && this.replyText === '') {
+          this.$message.warning('请输入内容')
+          return;
+        }
+        return this.$login.checkLogin('#articlePage').then(_ => {
+          loading = this.$loading({
+            lock: true,
+            text: 'Loading',
+            spinner: 'el-icon-loading',
+            background: 'rgba(0, 0, 0, 0.7)'
+          });
+          const data = {
+            content: this.comment,
+            parentId: '',
+            articleId: this.$route.params.id
+          };
+          if (id) {
+            data.parentId = id;
+            data.content = this.replyText;
+          }
+          return post('/article/comment/add', data);
+        }).then(ret => {
+          loading.close();
+          this.$message.success('发布成功');
+          this.comment = '';
+          this.getComment();
+        }).catch(err => {
+          loading && loading.close();
+          this.$message.error(err.message)
+        })
+      },
+      reply(id) {
+        if (this.replyId !== id) {
+          this.replyId = id;
+        } else {
+          this.addComment(id).then(_ => {
+            this.replyId = null;
+          })
+        }
+      },
+      cancelReply(id) {
+        this.replyId = null;
+      },
+      getComment() {
+        get('/article/comment/get', {
+          id: this.$route.params.id,
+          currentPage: 1
+        }).then(res => {
+          this.allComment = res.data.list;
+          this.currentPage = res.data.currentPage + 1;
+        }).then(_ => {
+          //排列评论
+          const sequence = [];
+          const parent = this.allComment.filter(item => item.parent_id === 0).reduce((total, item) => {
+            item.list = [];
+            total[item.id] = item;
+            sequence.push({
+              id: item.id,
+              username: item.username,
+              parent: item.id
+            })
+            return total;
+          }, {})
+          this.allComment.filter(item => item.parent_id !== 0).sort((a, b) => a.create_at < b.create_at ? -1 : 1)
+            .forEach(
+              item => {
+                sequence.some(item2 => {
+                  if (item.parent_id === item2.id) {
+                    // 1.增加to属性，方便渲染
+                    // 2.加到对应的父级comment的list里面方便渲染
+                    // 3.自己放到sequence里面，并且parent标记为顶级parent，方便三四五等等级comment找到父级comment
+                    item.to = item2.username;
+                    parent[item2.parent]['list'].push(item);
+                    sequence.push({
+                      id: item.id,
+                      username: item.username,
+                      parent: item2.parent
+                    });
+                    return true;
+                  } else {
+                    return false;
+                  }
+                })
+              })
+          this.parentComment = parent;
+          console.log(this.parentComment)
+        }).catch(e => {
+          console.log(e)
+        })
+      },
+      logout() {
+        const loading = this.$loading({
+          lock: true,
+          text: 'Loading',
+          spinner: 'el-icon-loading',
+          background: 'rgba(0, 0, 0, 0.7)'
+        });
+        let date = new Date();
+        date.setTime(-1000);
+        document.cookie = `username='';path=/;expires=${date.toUTCString()}`;
+        this.username = null;
+        loading.close();
+      },
+      login() {
+        this.$login.checkLogin('#articlePage')
+      }
     }
   }
 
@@ -120,8 +252,6 @@
     }
 
     .container {
-      position: relative;
-      z-index: 1;
       padding: 10px 15px;
       background: rgba(255, 255, 255, .8);
 
@@ -137,7 +267,10 @@
       }
 
       .comment-text-area {
+        position: relative;
+        z-index: 10;
         margin: 50px auto 20px auto;
+
         textarea {
           width: 100%;
           height: 150px;
@@ -149,18 +282,34 @@
           box-sizing: border-box;
           border-radius: 5px;
         }
+
         input {
           height: 30px;
-          width: 100px; 
+          width: 100px;
           color: white;
           background-color: coral;
           border: none;
           outline: none;
           border-radius: 5px;
         }
+
+        .logout {
+          float: right;
+          text-align: center;
+          background-color: rgb(172, 26, 26);
+        }
+
+        .login {
+          float: right;
+          text-align: center;
+          background-color: rgb(12, 168, 12);
+        }
       }
 
       .comment {
+        position: relative;
+        z-index: 10;
+
         img {
           height: 30px;
           width: 30px;
@@ -172,10 +321,36 @@
           line-height: 40px;
           list-style: none;
           vertical-align: middle;
+
+          input {
+            display: block;
+            width: calc(100% - 20px);
+            padding: 6px;
+            margin: 0 auto;
+            line-height: 30px;
+            border: none;
+            border-left: 3px orange solid;
+            outline: none;
+          }
+
+          ul {
+            margin-left: 2em;
+          }
         }
 
         li:not(:last-of-type) {
           border-bottom: 1px dashed rgba(0, 0, 0, .3);
+        }
+
+        .reply {
+          margin-left: 30px;
+          color: #9f9f9f;
+          font-size: 15px;
+
+          &.cancel {
+            margin-left: 10px;
+            color: indianred;
+          }
         }
       }
     }
@@ -186,7 +361,9 @@
     display: block;
     top: 0;
     left: 0;
-    z-index: 1;
+    height: 100%;
+    width: 100%;
+    z-index: 0;
   }
 
 </style>
