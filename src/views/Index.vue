@@ -15,7 +15,7 @@
         </router-link>
       </ul>
       <div class="footer">
-        <el-pagination layout="prev, pager, next" :total="totalPage" background :page-size="pageSize"
+        <el-pagination layout="prev, pager, next" :total="total" background :page-size="pageSize"
           :current-page.sync="currentPage" @current-change="listArticle"></el-pagination>
       </div>
     </div>
