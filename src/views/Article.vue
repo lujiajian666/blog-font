@@ -237,11 +237,13 @@
     .tag {
       margin-bottom: 10px;
       padding: 10px 15px;
+      font-size: 18px;
       line-height: 40px;
       color: orange;
       background-color: white;
 
       .tags {
+        margin-right: 10px;
         padding: 2px 10px;
         color: white;
         font-size: 12px;
@@ -253,12 +255,16 @@
 
     .container {
       padding: 10px 15px;
+      font-size: 16px;      
       background: rgba(255, 255, 255, .8);
 
+      h1 {
+        font-size: 30px;  
+      }
       .time {
         margin-bottom: 40px;
         color: #78a5f1;
-        font-size: 12px;
+        font-size: 17px;
       }
 
       .inner {
@@ -364,6 +370,12 @@
     height: 100%;
     width: 100%;
     z-index: 0;
+  }
+
+  @media screen and (max-width: 900px){
+    .index {
+      padding:40px 0;
+    }
   }
 
 </style>
